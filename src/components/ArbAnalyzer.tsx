@@ -18,6 +18,12 @@ const BATCH_SIZE = 100
 const API_DELAY = 100
 const REFRESH_THRESHOLD = 100
 
+interface SelectedMarket {
+    ticker: string
+    market: string
+    price: number
+}
+
 const ArbAnalyzer = () => {
     const [tokens, setTokens] = useState<Token[]>([])
     const [selectedMarkets, setSelectedMarkets] = useState<string[]>([])
@@ -29,6 +35,38 @@ const ArbAnalyzer = () => {
     const [sortConfig, setSortConfig] = useState<SortConfig | null>(null)
     const [showAllMarkets, setShowAllMarkets] = useState(true)
     const [ignoreZeroVolume, setIgnoreZeroVolume] = useState(false)
+    const [selectedTickerMarkets, setSelectedTickerMarkets] = useState<SelectedMarket[]>([])
+
+    const handleMarketRowClick = (ticker: string, market: string, price: number) => {
+        setSelectedTickerMarkets(prev => {
+            const currentSelected = prev.filter(m => m.ticker === ticker)
+            const otherTickers = prev.filter(m => m.ticker !== ticker)
+
+            if (currentSelected.find(m => m.market === market)) {
+                return [...otherTickers, ...currentSelected.filter(m => m.market !== market)]
+            }
+
+            if (currentSelected.length >= 2) {
+                return [...otherTickers, currentSelected[1], { ticker, market, price }]
+            }
+
+            return [...otherTickers, ...currentSelected, { ticker, market, price }]
+        })
+    }
+
+    const getSpreadPercentage = (ticker: string) => {
+        const markets = selectedTickerMarkets.filter(m => m.ticker === ticker)
+        if (markets.length !== 2) return null
+
+        const [market1, market2] = markets
+        const avgPrice = (market1.price + market2.price) / 2
+        const spread = Math.abs(market1.price - market2.price)
+        return (spread / avgPrice) * 100
+    }
+
+    const isMarketSelected = (ticker: string, market: string) => {
+        return selectedTickerMarkets.some(m => m.ticker === ticker && m.market === market)
+    }
 
     const handleSort = (key: SortConfig['key']) => {
         setSortConfig(current => {
@@ -102,7 +140,7 @@ const ArbAnalyzer = () => {
                     total: uniqueTickers.length
                 })
 
-                if (currentProcessedCount - lastProcessedCount >= REFRESH_THRESHOLD || 
+                if (currentProcessedCount - lastProcessedCount >= REFRESH_THRESHOLD ||
                     i + BATCH_SIZE >= uniqueTickers.length) {
                     setTokens([...validTokens])
                     lastProcessedCount = currentProcessedCount
@@ -367,44 +405,54 @@ const ArbAnalyzer = () => {
                                             const sortedMarkets = [...data.markets].sort((a, b) => a.price - b.price)
                                             const lowestPrice = sortedMarkets[0].price
                                             const highestPrice = sortedMarkets[sortedMarkets.length - 1].price
+                                            const spread = getSpreadPercentage(data.ticker)
 
-                                            return sortedMarkets.map((market, marketIndex) => (
-                                                <TableRow key={`${data.ticker}-${index}-${marketIndex}`} 
-                                                    className={marketIndex > 0 ? 'border-t-0' : ''}>
-                                                    {marketIndex === 0 && (
-                                                        <TableCell className="font-medium" rowSpan={sortedMarkets.length}>
-                                                            {data.ticker}
+                                            return sortedMarkets.map((market, marketIndex) => {
+                                                const isSelected = isMarketSelected(data.ticker, market.market)
+                                                return (
+                                                    <TableRow
+                                                        key={`${data.ticker}-${index}-${marketIndex}`}
+                                                        className={`${marketIndex > 0 ? 'border-t-0' : ''} ${isSelected ? 'bg-muted/50' : ''} cursor-pointer hover:bg-muted/30`}
+                                                        onClick={() => handleMarketRowClick(data.ticker, market.market, market.price)}
+                                                    >
+                                                        {marketIndex === 0 && (
+                                                            <TableCell className="font-medium" rowSpan={sortedMarkets.length}>
+                                                                {data.ticker}
+                                                            </TableCell>
+                                                        )}
+                                                        <TableCell>{market.market}</TableCell>
+                                                        <TableCell className={
+                                                            market.price === lowestPrice
+                                                                ? 'text-green-600 dark:text-green-400 font-bold'
+                                                                : market.price === highestPrice
+                                                                    ? 'text-red-600 dark:text-red-400 font-bold'
+                                                                    : ''
+                                                        }>
+                                                            ${market.price.toFixed(8)}
                                                         </TableCell>
-                                                    )}
-                                                    <TableCell>{market.market}</TableCell>
-                                                    <TableCell className={
-                                                        market.price === lowestPrice 
-                                                            ? 'text-green-600 dark:text-green-400 font-bold' 
-                                                            : market.price === highestPrice 
-                                                                ? 'text-red-600 dark:text-red-400 font-bold' 
-                                                                : ''
-                                                    }>
-                                                        ${market.price.toFixed(8)}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        ${market.volume.toFixed(2)}
-                                                    </TableCell>
-                                                    <TableCell className={
-                                                        market.price === lowestPrice 
-                                                            ? 'text-green-600 dark:text-green-400 font-bold' 
-                                                            : market.price === highestPrice 
-                                                                ? 'text-red-600 dark:text-red-400 font-bold' 
-                                                                : ''
-                                                    }>
-                                                        {market.price === lowestPrice ? '[BUY]' : market.price === highestPrice ? '[SELL]' : '-'}
-                                                    </TableCell>
-                                                    {marketIndex === 0 && (
-                                                        <TableCell className="font-semibold text-green-600 dark:text-green-400" rowSpan={sortedMarkets.length}>
-                                                            {data.maxSpread.toFixed(2)}%
+                                                        <TableCell>
+                                                            ${market.volume.toFixed(2)}
                                                         </TableCell>
-                                                    )}
-                                                </TableRow>
-                                            ))
+                                                        <TableCell className={
+                                                            market.price === lowestPrice
+                                                                ? 'text-green-600 dark:text-green-400 font-bold'
+                                                                : market.price === highestPrice
+                                                                    ? 'text-red-600 dark:text-red-400 font-bold'
+                                                                    : ''
+                                                        }>
+                                                            {market.price === lowestPrice ? '[BUY]' : market.price === highestPrice ? '[SELL]' : '-'}
+                                                        </TableCell>
+                                                        {marketIndex === 0 && (
+                                                            <TableCell
+                                                                className="font-semibold text-green-600 dark:text-green-400"
+                                                                rowSpan={sortedMarkets.length}
+                                                            >
+                                                                {spread !== null ? `${spread.toFixed(2)}%` : data.maxSpread.toFixed(2) + '%'}
+                                                            </TableCell>
+                                                        )}
+                                                    </TableRow>
+                                                )
+                                            })
                                         })}
                                 </TableBody>
                             </Table>
