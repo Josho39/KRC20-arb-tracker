@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { ThemeToggle } from '@/components/theme-toggle'
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowUpDown, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react'
 import { type Token, type ArbOpportunity, type SortConfig } from '@/types/token'
 import { calculateArbs, calculateCombinedMarketData, getAllMarkets } from '@/lib/arbcalc'
 import _ from 'lodash'
@@ -102,7 +102,7 @@ const ArbAnalyzer = () => {
                     total: uniqueTickers.length
                 })
 
-                if (currentProcessedCount - lastProcessedCount >= REFRESH_THRESHOLD ||
+                if (currentProcessedCount - lastProcessedCount >= REFRESH_THRESHOLD || 
                     i + BATCH_SIZE >= uniqueTickers.length) {
                     setTokens([...validTokens])
                     lastProcessedCount = currentProcessedCount
@@ -205,10 +205,11 @@ const ArbAnalyzer = () => {
 
     const SortableHeader: React.FC<{
         column: SortConfig['key']
-        children: React.ReactNode
-    }> = ({ column, children }) => (
+        children: React.ReactNode,
+        className?: string
+    }> = ({ column, children, className }) => (
         <TableHead
-            className="cursor-pointer hover:bg-muted/50"
+            className={`cursor-pointer hover:bg-muted/50 ${className}`}
             onClick={() => handleSort(column)}
         >
             <div className="flex items-center gap-1">
@@ -232,7 +233,7 @@ const ArbAnalyzer = () => {
 
     if (error) {
         return (
-            <Card className="w-full max-w-7xl mx-auto">
+            <Card className="w-[100vw] sm:w-full sm:max-w-7xl mx-auto">
                 <CardContent className="p-6">
                     <div className="text-red-500">Error: {error}</div>
                 </CardContent>
@@ -241,12 +242,22 @@ const ArbAnalyzer = () => {
     }
 
     return (
-        <Card className="w-full max-w-7xl mx-auto">
+        <Card className="w-[100vw] sm:w-full sm:max-w-7xl mx-auto">
             <CardHeader>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                     <CardTitle>KRC20 Arbitrage Analyzer</CardTitle>
-                    <div className="flex gap-2 items-center">
+                    <div className="flex flex-wrap gap-2 items-center">
                         <ThemeToggle />
+                        <Button
+                            onClick={() => loadLocalTickers()}
+                            disabled={isLoading}
+                            className="flex items-center gap-2"
+                            variant="outline"
+                        >
+                            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                            <span className="hidden sm:inline">Refresh Market Data</span>
+                            <span className="sm:hidden">Refresh</span>
+                        </Button>
                         {isLoading && (
                             <div className="text-sm text-muted-foreground">
                                 {progress.current > 0
@@ -258,12 +269,14 @@ const ArbAnalyzer = () => {
                             onClick={loadLocalTickers}
                             disabled={isLoading}
                             variant="outline"
+                            className="hidden sm:block"
                         >
                             Load Tickers
                         </Button>
                         <Button
                             onClick={downloadAllTickers}
                             disabled={isLoading}
+                            className="hidden sm:block"
                         >
                             Download New Tickers
                         </Button>
@@ -272,13 +285,13 @@ const ArbAnalyzer = () => {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-wrap">
                         <Input
                             type="text"
                             placeholder="Filter by ticker..."
                             value={filterTicker}
                             onChange={(e) => setFilterTicker(e.target.value)}
-                            className="max-w-sm"
+                            className="w-full sm:max-w-sm"
                         />
                         <div className="flex items-center space-x-2">
                             <Label htmlFor="min-volume">Min Volume ($):</Label>
@@ -307,14 +320,14 @@ const ArbAnalyzer = () => {
                             />
                             <Label htmlFor="show-all-markets">Show All Markets</Label>
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-muted-foreground w-full sm:w-auto">
                             Total Tokens: {tokens.length}
                         </div>
                     </div>
 
                     {!showAllMarkets && (
                         <div className="space-y-2">
-                            <h3 className="text-lg font-semibold">Select Markets to Compare:</h3>
+                            <h3 className="text-lg font-semibold">Select Markets:</h3>
                             <div className="flex flex-wrap gap-2">
                                 {allMarkets.map(market => (
                                     <Button
@@ -335,92 +348,119 @@ const ArbAnalyzer = () => {
                         </div>
                     )}
                     {showAllMarkets ? (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Ticker</TableHead>
-                                    <TableHead>Markets</TableHead>
-                                    <TableHead>Lowest Price</TableHead>
-                                    <TableHead>Highest Price</TableHead>
-                                    <TableHead>Max Spread %</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {combinedMarketData
-                                    .filter(data => data.ticker.toLowerCase().includes(filterTicker.toLowerCase()))
-                                    .map((data, index) => {
-                                        const sortedMarkets = [...data.markets].sort((a, b) => a.price - b.price)
-                                        const lowestPrice = sortedMarkets[0].price
-                                        const highestPrice = sortedMarkets[sortedMarkets.length - 1].price
-
-                                        return (
-                                            <TableRow key={`${data.ticker}-${index}`}>
-                                                <TableCell className="font-medium">{data.ticker}</TableCell>
-                                                <TableCell>
-                                                    <div className="space-y-1">
-                                                        {sortedMarkets.map((m, i) => (
-                                                            <div key={i} className={`text-sm ${m.price === lowestPrice ? 'text-green-600 dark:text-green-400 font-bold' : m.price === highestPrice ? 'text-red-600 dark:text-red-400 font-bold' : ''}`}>
-                                                                {m.market}: ${m.price.toFixed(8)} (Vol: ${m.volume.toFixed(2)})
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </TableCell>
-                                                <TableCell className="text-green-600 dark:text-green-400 font-bold">
-                                                    ${data.minPrice.toFixed(8)}
-                                                </TableCell>
-                                                <TableCell className="text-red-600 dark:text-red-400 font-bold">
-                                                    ${data.maxPrice.toFixed(8)}
-                                                </TableCell>
-                                                <TableCell className="font-semibold text-green-600 dark:text-green-400">
-                                                    {data.maxSpread.toFixed(2)}%
-                                                </TableCell>
-                                            </TableRow>
-                                        )
-                                    })}
-                            </TableBody>
-                        </Table>
-                    ) : (
-                        selectedMarkets.length === 2 && (
-                            <Table>
-                                <TableHeader>
+                        <div className="relative h-[calc(100vh-300px)] overflow-x-auto overflow-y-auto border rounded-md min-w-full">
+                            <Table className="min-w-[800px]">
+                                <TableHeader className="sticky top-0 bg-background z-10">
                                     <TableRow>
-                                        <SortableHeader column="ticker">Ticker</SortableHeader>
+                                        <TableHead className="w-24">Ticker</TableHead>
+                                        <TableHead>Market</TableHead>
+                                        <TableHead>Price</TableHead>
+                                        <TableHead>Volume</TableHead>
                                         <TableHead>Action</TableHead>
-                                        <SortableHeader column="market1.price">{selectedMarkets[0]} Price</SortableHeader>
-                                        <SortableHeader column="market1.volume">{selectedMarkets[0]} Volume</SortableHeader>
-                                        <TableHead>Action</TableHead>
-                                        <SortableHeader column="market2.price">{selectedMarkets[1]} Price</SortableHeader>
-                                        <SortableHeader column="market2.volume">{selectedMarkets[1]} Volume</SortableHeader>
-                                        <SortableHeader column="arbPercentage">Arb %</SortableHeader>
-                                        <SortableHeader column="profitPerToken">Profit/Token</SortableHeader>
+                                        <TableHead>Spread %</TableHead>
                                     </TableRow>
                                 </TableHeader>
-                                <TableBody>
-                                    {getSortedArbs(sortedArbs)
-                                        .filter(arb => arb.ticker.toLowerCase().includes(filterTicker.toLowerCase()))
-                                        .map((arb, index) => (
-                                            <TableRow key={`${arb.ticker}-${index}`}>
-                                                <TableCell className="font-medium">{arb.ticker}</TableCell>
-                                                <TableCell className={arb.market1.action === 'BUY' ? 'text-green-600 dark:text-green-400 font-bold' : 'text-red-600 dark:text-red-400 font-bold'}>
-                                                    {arb.market1.action}
-                                                </TableCell>
-                                                <TableCell>${arb.market1.price.toFixed(8)}</TableCell>
-                                                <TableCell>${arb.market1.volume.toFixed(2)}</TableCell>
-                                                <TableCell className={arb.market2.action === 'BUY' ? 'text-green-600 dark:text-green-400 font-bold' : 'text-red-600 dark:text-red-400 font-bold'}>
-                                                    {arb.market2.action}
-                                                </TableCell>
-                                                <TableCell>${arb.market2.price.toFixed(8)}</TableCell>
-                                                <TableCell>${arb.market2.volume.toFixed(2)}</TableCell>
-                                                <TableCell className="font-semibold">
-                                                    {arb.arbPercentage.toFixed(2)}%
-                                                </TableCell>
-                                                <TableCell className="font-semibold text-green-600 dark:text-green-400">
-                                                    ${arb.profitPerToken.toFixed(8)}
-                                                </TableCell>
-                                            </TableRow>
-                                        ))}
+                                <TableBody className="overflow-auto">
+                                    {combinedMarketData
+                                        .filter(data => data.ticker.toLowerCase().includes(filterTicker.toLowerCase()))
+                                        .map((data, index) => {
+                                            const sortedMarkets = [...data.markets].sort((a, b) => a.price - b.price)
+                                            const lowestPrice = sortedMarkets[0].price
+                                            const highestPrice = sortedMarkets[sortedMarkets.length - 1].price
+
+                                            return sortedMarkets.map((market, marketIndex) => (
+                                                <TableRow key={`${data.ticker}-${index}-${marketIndex}`} 
+                                                    className={marketIndex > 0 ? 'border-t-0' : ''}>
+                                                    {marketIndex === 0 && (
+                                                        <TableCell className="font-medium" rowSpan={sortedMarkets.length}>
+                                                            {data.ticker}
+                                                        </TableCell>
+                                                    )}
+                                                    <TableCell>{market.market}</TableCell>
+                                                    <TableCell className={
+                                                        market.price === lowestPrice 
+                                                            ? 'text-green-600 dark:text-green-400 font-bold' 
+                                                            : market.price === highestPrice 
+                                                                ? 'text-red-600 dark:text-red-400 font-bold' 
+                                                                : ''
+                                                    }>
+                                                        ${market.price.toFixed(8)}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        ${market.volume.toFixed(2)}
+                                                    </TableCell>
+                                                    <TableCell className={
+                                                        market.price === lowestPrice 
+                                                            ? 'text-green-600 dark:text-green-400 font-bold' 
+                                                            : market.price === highestPrice 
+                                                                ? 'text-red-600 dark:text-red-400 font-bold' 
+                                                                : ''
+                                                    }>
+                                                        {market.price === lowestPrice ? '[BUY]' : market.price === highestPrice ? '[SELL]' : '-'}
+                                                    </TableCell>
+                                                    {marketIndex === 0 && (
+                                                        <TableCell className="font-semibold text-green-600 dark:text-green-400" rowSpan={sortedMarkets.length}>
+                                                            {data.maxSpread.toFixed(2)}%
+                                                        </TableCell>
+                                                    )}
+                                                </TableRow>
+                                            ))
+                                        })}
                                 </TableBody>
                             </Table>
+                        </div>
+                    ) : (
+                        selectedMarkets.length === 2 && (
+                            <div className="relative h-[calc(100vh-300px)] overflow-x-auto overflow-y-auto border rounded-md min-w-full">
+                                <Table className="min-w-[800px]">
+                                    <TableHeader className="sticky top-0 bg-background z-10">
+                                        <TableRow>
+                                            <SortableHeader column="ticker">Ticker</SortableHeader>
+                                            <TableHead>Action</TableHead>
+                                            <SortableHeader column="market1.price">
+                                                {selectedMarkets[0]} Price
+                                            </SortableHeader>
+                                            <SortableHeader column="market1.volume">
+                                                {selectedMarkets[0]} Volume
+                                            </SortableHeader>
+                                            <TableHead>Action</TableHead>
+                                            <SortableHeader column="market2.price">
+                                                {selectedMarkets[1]} Price
+                                            </SortableHeader>
+                                            <SortableHeader column="market2.volume">
+                                                {selectedMarkets[1]} Volume
+                                            </SortableHeader>
+                                            <SortableHeader column="arbPercentage">Arb %</SortableHeader>
+                                            <SortableHeader column="profitPerToken">Profit/Token</SortableHeader>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody className="overflow-auto">
+                                        {getSortedArbs(sortedArbs)
+                                            .filter(arb => arb.ticker.toLowerCase().includes(filterTicker.toLowerCase()))
+                                            .map((arb, index) => (
+                                                <TableRow key={`${arb.ticker}-${index}`}>
+                                                    <TableCell className="font-medium">{arb.ticker}</TableCell>
+                                                    <TableCell className={arb.market1.action === 'BUY' ? 'text-green-600 dark:text-green-400 font-bold' : 'text-red-600 dark:text-red-400 font-bold'}>
+                                                        {arb.market1.action}
+                                                    </TableCell>
+                                                    <TableCell>${arb.market1.price.toFixed(8)}</TableCell>
+                                                    <TableCell>${arb.market1.volume.toFixed(2)}</TableCell>
+                                                    <TableCell className={arb.market2.action === 'BUY' ? 'text-green-600 dark:text-green-400 font-bold' : 'text-red-600 dark:text-red-400 font-bold'}>
+                                                        {arb.market2.action}
+                                                    </TableCell>
+                                                    <TableCell>${arb.market2.price.toFixed(8)}</TableCell>
+                                                    <TableCell>${arb.market2.volume.toFixed(2)}</TableCell>
+                                                    <TableCell className="font-semibold">
+                                                        {arb.arbPercentage.toFixed(2)}%
+                                                    </TableCell>
+                                                    <TableCell className="font-semibold text-green-600 dark:text-green-400">
+                                                        ${arb.profitPerToken.toFixed(8)}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         )
                     )}
                 </div>
