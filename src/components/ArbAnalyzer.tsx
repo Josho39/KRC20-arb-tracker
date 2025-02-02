@@ -22,6 +22,7 @@ const ArbAnalyzer = () => {
     const [tokens, setTokens] = useState<Token[]>([])
     const [selectedMarkets, setSelectedMarkets] = useState<string[]>([])
     const [filterTicker, setFilterTicker] = useState('')
+    const [minVolume, setMinVolume] = useState<number>(0)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [progress, setProgress] = useState({ current: 0, total: 0 })
@@ -101,8 +102,7 @@ const ArbAnalyzer = () => {
                     total: uniqueTickers.length
                 })
 
-                // Update tokens if we've processed REFRESH_THRESHOLD more or it's the last batch
-                if (currentProcessedCount - lastProcessedCount >= REFRESH_THRESHOLD || 
+                if (currentProcessedCount - lastProcessedCount >= REFRESH_THRESHOLD ||
                     i + BATCH_SIZE >= uniqueTickers.length) {
                     setTokens([...validTokens])
                     lastProcessedCount = currentProcessedCount
@@ -111,7 +111,6 @@ const ArbAnalyzer = () => {
                 await new Promise(resolve => setTimeout(resolve, API_DELAY))
             }
 
-            // Final update with all tokens
             setTokens([...validTokens])
 
             if (failedTokens.length > 0) {
@@ -172,20 +171,21 @@ const ArbAnalyzer = () => {
             setProgress({ current: 0, total: 0 })
         }
     }
+
     const allMarkets = useMemo(() =>
-        getAllMarkets(tokens, ignoreZeroVolume),
-        [tokens, ignoreZeroVolume]
+        getAllMarkets(tokens, ignoreZeroVolume, minVolume),
+        [tokens, ignoreZeroVolume, minVolume]
     )
 
     const sortedArbs = useMemo(() =>
-        calculateArbs(tokens, selectedMarkets, ignoreZeroVolume),
-        [tokens, selectedMarkets, ignoreZeroVolume]
+        calculateArbs(tokens, selectedMarkets, ignoreZeroVolume, minVolume),
+        [tokens, selectedMarkets, ignoreZeroVolume, minVolume]
     )
 
     const combinedMarketData = useMemo(() => {
-        const data = calculateCombinedMarketData(tokens, ignoreZeroVolume)
+        const data = calculateCombinedMarketData(tokens, ignoreZeroVolume, minVolume)
         return _.orderBy(data, ['maxSpread'], ['desc'])
-    }, [tokens, ignoreZeroVolume])
+    }, [tokens, ignoreZeroVolume, minVolume])
 
     const getSortedArbs = (arbs: ArbOpportunity[]) => {
         if (!sortConfig) return arbs
@@ -232,7 +232,7 @@ const ArbAnalyzer = () => {
 
     if (error) {
         return (
-            <Card className="w-full max-w-6xl mx-auto">
+            <Card className="w-full max-w-7xl mx-auto">
                 <CardContent className="p-6">
                     <div className="text-red-500">Error: {error}</div>
                 </CardContent>
@@ -241,7 +241,7 @@ const ArbAnalyzer = () => {
     }
 
     return (
-        <Card className="w-full max-w-6xl mx-auto">
+        <Card className="w-full max-w-7xl mx-auto">
             <CardHeader>
                 <div className="flex justify-between items-center">
                     <CardTitle>KRC20 Arbitrage Analyzer</CardTitle>
@@ -280,6 +280,17 @@ const ArbAnalyzer = () => {
                             onChange={(e) => setFilterTicker(e.target.value)}
                             className="max-w-sm"
                         />
+                        <div className="flex items-center space-x-2">
+                            <Label htmlFor="min-volume">Min Volume ($):</Label>
+                            <Input
+                                id="min-volume"
+                                type="number"
+                                placeholder="Min volume"
+                                value={minVolume}
+                                onChange={(e) => setMinVolume(Number(e.target.value))}
+                                className="max-w-24"
+                            />
+                        </div>
                         <div className="flex items-center space-x-2">
                             <Switch
                                 id="ignore-zero-volume"

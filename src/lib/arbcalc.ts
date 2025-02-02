@@ -3,7 +3,12 @@ import { Token, ArbOpportunity, CombinedMarketData, MarketPrice, SortConfig } fr
 import _ from 'lodash'
 
 export const calculateArbs = (
-tokenData: Token[], markets: string[], ignoreZeroVolume: boolean, sortConfig?: SortConfig | null): ArbOpportunity[] => {
+    tokenData: Token[], 
+    markets: string[], 
+    ignoreZeroVolume: boolean,
+    minVolume: number = 0,
+    sortConfig?: SortConfig | null
+): ArbOpportunity[] => {
     if (markets.length !== 2) return []
 
     const arbs = tokenData.map<ArbOpportunity | null>(token => {
@@ -18,6 +23,7 @@ tokenData: Token[], markets: string[], ignoreZeroVolume: boolean, sortConfig?: S
         const volume2 = market2.marketData.volumeInUsd
 
         if (ignoreZeroVolume && (volume1 === 0 || volume2 === 0)) return null
+        if (minVolume > 0 && (volume1 < minVolume || volume2 < minVolume)) return null
 
         const priceDiff = Math.abs(price1 - price2)
         const avgPrice = (price1 + price2) / 2
@@ -50,12 +56,17 @@ tokenData: Token[], markets: string[], ignoreZeroVolume: boolean, sortConfig?: S
 }
 
 export const calculateCombinedMarketData = (
-tokenData: Token[], ignoreZeroVolume: boolean, sortConfig?: SortConfig | null): CombinedMarketData[] => {
+    tokenData: Token[], 
+    ignoreZeroVolume: boolean,
+    minVolume: number = 0,
+    sortConfig?: SortConfig | null
+): CombinedMarketData[] => {
     return tokenData.map(token => {
         const markets: MarketPrice[] = token.marketsData
             ?.filter(m => {
                 if (!m.marketData?.priceInUsd) return false
                 if (ignoreZeroVolume && m.marketData.volumeInUsd === 0) return false
+                if (minVolume > 0 && m.marketData.volumeInUsd < minVolume) return false
                 return true
             })
             ?.map(m => ({
@@ -81,10 +92,18 @@ tokenData: Token[], ignoreZeroVolume: boolean, sortConfig?: SortConfig | null): 
     }).filter((data): data is CombinedMarketData => data !== null)
 }
 
-export const getAllMarkets = (tokens: Token[], ignoreZeroVolume: boolean): string[] => {
+export const getAllMarkets = (
+    tokens: Token[], 
+    ignoreZeroVolume: boolean,
+    minVolume: number = 0
+): string[] => {
     return _.uniq(tokens.flatMap(token => 
         token.marketsData
-            ?.filter(market => !ignoreZeroVolume || market.marketData?.volumeInUsd > 0)
+            ?.filter(market => {
+                if (ignoreZeroVolume && market.marketData?.volumeInUsd === 0) return false
+                if (minVolume > 0 && market.marketData?.volumeInUsd < minVolume) return false
+                return true
+            })
             .map(market => market.name) || []
     ))
 }
