@@ -1,5 +1,4 @@
-{
-  "tickers": [
+export const TICKERS = [
     "QUEST",
     "COCO",
     "HUGOLD",
@@ -1889,5 +1888,5 @@
     "KASPAY",
     "MOON",
     "KASPI"
-  ]
-}
+
+] as const;

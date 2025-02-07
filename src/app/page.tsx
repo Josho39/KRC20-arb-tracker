@@ -1,4 +1,4 @@
-import ArbAnalyzer from '@/components/ArbAnalyzer'
+import ArbAnalyzer from '@/components/page'
 
 export default function Home() {
   return (
