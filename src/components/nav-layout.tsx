@@ -9,8 +9,6 @@ import { cn } from "@/lib/utils";
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { LineChart, Wrench, Calculator, Microscope, Menu, X, Home } from 'lucide-react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTelegram } from '@fortawesome/free-brands-svg-icons';
 import TelegramLogin from '@/components/telegram-login';
 
 const navigation = [
@@ -66,14 +64,6 @@ const NavLayout = ({ children }: { children: ReactNode }) => {
 
                     <div className="flex items-center space-x-4">
                         <TelegramLogin />
-                        <Button 
-                            variant="outline" 
-                            size="sm"
-                            className="bg-[#0088cc] text-white hover:bg-[#0088cc]/90 hover:text-white space-x-2"
-                        >
-                            <FontAwesomeIcon icon={faTelegram} className="h-4 w-4" />
-                            <span>Login</span>
-                        </Button>
                         <ThemeToggle />
                         <Button
                             variant="outline"

@@ -22,7 +22,6 @@ const TelegramLogin = () => {
         try {
           const authResult = await handleTelegramAuth(user);
           console.log('Authentication successful:', authResult);
-          // Handle successful auth here
         } catch (error) {
           console.error('Authentication failed:', error);
         }
