@@ -21,7 +21,6 @@ const config: NextConfig = {
       }
     ];
   },
-  // Your existing config options here
 };
 
 export default config;
