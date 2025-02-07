@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import _ from 'lodash';
 import { MARKETS } from './market-config';
 import { TICKERS } from './krc20-tickers';
+import AuthCheck from '@/components/auth-chec';
 
 interface MarketData {
     priceInUsd: number;
@@ -222,6 +223,7 @@ const ArbAnalyzer = () => {
     }, [filteredTokens, ignoreZeroVolume, minVolume]);
 
     return (
+        <AuthCheck>
         <Card>
             <CardHeader>
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
@@ -415,6 +417,7 @@ const ArbAnalyzer = () => {
                 </div>
             </CardContent>
         </Card>
+        </AuthCheck>
     );
 };
 

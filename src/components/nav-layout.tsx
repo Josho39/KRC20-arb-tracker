@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
-import { LineChart, Wrench, Calculator, Microscope, Menu, X, Home } from 'lucide-react';
+import { LineChart, Wrench, Calculator, Microscope, Menu, X, Home, LogOut } from 'lucide-react';
 import TelegramLogin from '@/components/telegram-login';
 
 const navigation = [
@@ -22,6 +22,26 @@ const navigation = [
 const NavLayout = ({ children }: { children: ReactNode }) => {
     const pathname = usePathname();
     const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    interface UserData {
+        username: string;
+    }
+    const [userData, setUserData] = useState<UserData | null>(null);
+
+    useEffect(() => {
+        const telegramUser = localStorage.getItem('telegramUser');
+        if (telegramUser) {
+            setIsAuthenticated(true);
+            setUserData(JSON.parse(telegramUser));
+        }
+    }, []);
+
+    const handleLogout = () => {
+        localStorage.removeItem('telegramUser');
+        setIsAuthenticated(false);
+        setUserData(null);
+        window.location.reload();
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -63,7 +83,24 @@ const NavLayout = ({ children }: { children: ReactNode }) => {
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        <TelegramLogin />
+                        {isAuthenticated ? (
+                            <div className="flex items-center space-x-4">
+                                <span className="text-sm text-muted-foreground">
+                                    @{userData?.username}
+                                </span>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={handleLogout}
+                                    className="space-x-2"
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                    <span>Logout</span>
+                                </Button>
+                            </div>
+                        ) : (
+                            <TelegramLogin />
+                        )}
                         <ThemeToggle />
                         <Button
                             variant="outline"
@@ -111,6 +148,16 @@ const NavLayout = ({ children }: { children: ReactNode }) => {
                                     </Link>
                                 );
                             })}
+                            {isAuthenticated && (
+                                <Button 
+                                    variant="outline" 
+                                    className="mt-4"
+                                    onClick={handleLogout}
+                                >
+                                    <LogOut className="h-4 w-4 mr-2" />
+                                    Logout
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>

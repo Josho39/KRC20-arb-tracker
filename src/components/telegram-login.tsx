@@ -22,6 +22,8 @@ const TelegramLogin = () => {
         try {
           const authResult = await handleTelegramAuth(user);
           console.log('Authentication successful:', authResult);
+          localStorage.setItem('telegramUser', JSON.stringify(authResult));
+          window.location.reload();
         } catch (error) {
           console.error('Authentication failed:', error);
         }
@@ -30,7 +32,7 @@ const TelegramLogin = () => {
       const script = document.createElement('script');
       script.src = 'https://telegram.org/js/telegram-widget.js?22';
       script.async = true;
-      script.setAttribute('data-telegram-login', 'logintestkastoolsbot');
+      script.setAttribute('data-telegram-login', 'logintestkastoolsbot'); // Your bot username
       script.setAttribute('data-size', 'large');
       script.setAttribute('data-radius', '20');
       script.setAttribute('data-onauth', 'onTelegramAuth(user)');
