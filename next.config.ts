@@ -10,6 +10,7 @@ const config: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "frame-ancestors 'self'",
+              "https://krc-20-arb-tracker.vercel.app",
               "http://127.0.0.1:3000",
               "http://localhost:3000",
               "https://oauth.telegram.org",
