@@ -1,9 +1,5 @@
-import ArbAnalyzer from '@/components/page'
+import HomePage from '@/components/home-page';
 
 export default function Home() {
-  return (
-    <main className="min-h-screen p-8">
-      <ArbAnalyzer />
-    </main>
-  )
+  return <HomePage />;
 }

@@ -1,14 +1,14 @@
-// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import NavLayout from "@/components/nav-layout";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "KRC20 Arbitrage Analyzer",
-  description: "Analyze arbitrage opportunities across KRC20 tokens",
+  title: "KRC20 Tools",
+  description: "Analysis and trading tools for KRC20 tokens",
 };
 
 export default function RootLayout({
@@ -25,7 +25,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <NavLayout>
+            {children}
+          </NavLayout>
         </ThemeProvider>
       </body>
     </html>
