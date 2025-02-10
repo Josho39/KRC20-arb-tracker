@@ -1,20 +1,22 @@
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
-const MONGODB_URI = process.env.MONGODB_URI as string;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 export async function POST(request: Request) {
+  console.log('Starting user save...');
   try {
-    const userData = await request.json();
-    
-    if (!userData.id && !userData.telegramId) {
-      return NextResponse.json({ error: 'No Telegram ID provided' }, { status: 400 });
+    if (!MONGODB_URI) {
+      throw new Error('MONGODB_URI is not defined');
     }
 
+    const userData = await request.json();
+    console.log('Received user data:', userData);
+    
     const client = await MongoClient.connect(MONGODB_URI);
     const db = client.db('users');
     const collection = db.collection('telegram_users');
-    const telegramId = userData.telegramId || userData.id;
+    const telegramId = userData.id; 
 
     const userDocument = {
       telegramId: telegramId,
@@ -24,67 +26,34 @@ export async function POST(request: Request) {
       photo_url: userData.photo_url,
       auth_date: userData.auth_date,
       lastLogin: new Date(),
-      updatedAt: new Date(),
-      loginHistory: {
-        lastLoginTime: new Date(),
-        loginCount: 1,
-        previousLogin: null
-      },
-      status: {
-        isActive: true,
-        lastActive: new Date()
-      },
-      preferences: {
-        notifications: {
-          enabled: false,
-          threshold: 5,
-          types: {
-            price_alerts: true,
-            new_listings: true,
-            high_volume: true
-          }
-        },
-        theme: 'system',
-        language: 'en'
-      }
+      updatedAt: new Date()
     };
 
-    const result = await collection.findOneAndUpdate(
+    console.log('Attempting to save:', userDocument);
+
+    const result = await collection.updateOne(
       { telegramId: telegramId },
       {
-        $set: {
-          ...userDocument,
-          updatedAt: new Date(),
-          'loginHistory.previousLogin': '$loginHistory.lastLoginTime',
-          'loginHistory.lastLoginTime': new Date()
-        },
+        $set: userDocument,
         $setOnInsert: {
           createdAt: new Date()
-        },
-        $inc: {
-          'loginHistory.loginCount': 1
         }
       },
-      { 
-        upsert: true,
-        returnDocument: 'after'
-      }
+      { upsert: true }
     );
 
     await client.close();
+    console.log('Save operation result:', result);
     
-    if (result && result.value) {
-      return NextResponse.json({
-        success: true,
-        user: result.value
-      });
-    } else {
-      throw new Error('Failed to save user data');
-    }
+    return NextResponse.json({
+      success: true,
+      message: 'User data saved successfully'
+    });
+
   } catch (error) {
-    console.error('Save user error:', error);
+    console.error('Detailed save error:', error);
     return NextResponse.json(
-      { error: 'Failed to save user data' },
+      { error: 'Failed to save user data', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
