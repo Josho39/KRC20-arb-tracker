@@ -330,8 +330,8 @@ const SniperTimeline = () => {
                         <div className={`absolute left-0 w-3 h-3 rounded-full -translate-x-1/2 
                           ${isIncrease ? 'bg-green-500' : 'bg-red-500'}
                           shadow-lg shadow-${isIncrease ? 'green' : 'red'}-500/50
-                          transition-all duration-1000 ease-in-out
-                          animate-[ping_4s_ease-in-out_infinite]`} 
+                          transition-all duration-4000 ease-in-out
+                          animate-pulse`} 
                         />
                         
                         <div className={`bg-card rounded-lg border p-6 shadow-sm
