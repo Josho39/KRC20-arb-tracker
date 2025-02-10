@@ -27,7 +27,8 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(settings);
-  } catch {
+  } catch (error) {
+    console.error('GET settings error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch notification settings' },
       { status: 500 }
@@ -37,7 +38,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { telegramId, enabled, threshold } = await request.json();
+    const body = await request.json();
+    const { telegramId, enabled, threshold } = body;
     
     if (!telegramId) {
       return NextResponse.json({ error: 'Telegram ID required' }, { status: 400 });
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
     const db = client.db('users');
     const collection = db.collection('notification_settings');
     
-    await collection.updateOne(
+    const result = await collection.updateOne(
       { telegramId: telegramId },
       { 
         $set: { 
@@ -61,8 +63,13 @@ export async function POST(request: Request) {
 
     await client.close();
     
-    return NextResponse.json({ success: true });
-  } catch {
+    if (result.acknowledged) {
+      return NextResponse.json({ success: true, enabled, threshold });
+    } else {
+      throw new Error('Database update not acknowledged');
+    }
+  } catch (error) {
+    console.error('POST settings error:', error);
     return NextResponse.json(
       { error: 'Failed to update notification settings' },
       { status: 500 }

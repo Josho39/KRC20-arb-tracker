@@ -76,26 +76,32 @@ const SniperTimeline = () => {
   }, []);
 
   const fetchNotificationSettings = async () => {
+    if (!telegramUser?.id) return;
+    
     try {
-      const response = await fetch('/api/notifications/settings');
-      if (response.ok) {
-        const data = await response.json();
-        setNotificationsEnabled(data.enabled);
-        setNotificationThreshold(data.threshold);
+      const response = await fetch(`/api/notifications/settings?telegramId=${telegramUser.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch settings');
       }
+      const data = await response.json();
+      console.log('Fetched settings:', data);
+      setNotificationsEnabled(data.enabled);
+      setNotificationThreshold(data.threshold);
     } catch (error) {
       console.error('Failed to fetch notification settings:', error);
     }
   };
 
-  const handleNotificationSettingChange = async (newEnabled?: boolean) => {
+  const handleNotificationSettingChange = async (newEnabled: boolean) => {
     if (!telegramUser) {
+      console.log('No telegram user found');
       setError('Please log in with Telegram first');
       return;
     }
 
     try {
-      setNotificationsEnabled(newEnabled ?? !notificationsEnabled);
+      console.log('Updating notifications to:', newEnabled);
+      console.log('Telegram ID:', telegramUser.id);
       
       const response = await fetch('/api/notifications/settings', {
         method: 'POST',
@@ -104,16 +110,23 @@ const SniperTimeline = () => {
         },
         body: JSON.stringify({
           telegramId: telegramUser.id,
-          enabled: newEnabled ?? !notificationsEnabled,
+          enabled: newEnabled,
           threshold: notificationThreshold
         }),
       });
       
-      if (!response.ok) throw new Error('Failed to update notification settings');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.error || 'Failed to update notification settings');
+      }
+
+      setNotificationsEnabled(newEnabled);
       setError(null);
-    } catch {
+      
+    } catch (err) {
+      console.error('Handler error:', err);
       setError('Failed to update notification settings');
-      setNotificationsEnabled(newEnabled !== undefined ? !newEnabled : notificationsEnabled); 
     }
   };
 
@@ -240,7 +253,7 @@ const SniperTimeline = () => {
                             value={[notificationThreshold]}
                             onValueChange={(values) => {
                               setNotificationThreshold(values[0]);
-                              handleNotificationSettingChange();
+                              handleNotificationSettingChange(notificationsEnabled);
                             }}
                             min={0}
                             max={50}
