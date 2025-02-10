@@ -8,13 +8,13 @@ import Image from 'next/image';
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
-import { LineChart, Wrench, Calculator, Microscope, Menu, X, Home, LogOut } from 'lucide-react';
+import { Target, Wrench, Calculator, Microscope, Menu, X, Home, LogOut } from 'lucide-react';
 import TelegramLogin from '@/components/telegram-login';
 
 const navigation = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Arb Calculator', href: '/arbcalc', icon: Calculator },
-    { name: 'Tool 2', href: '/tool2', icon: LineChart },
+    { name: 'Sniper', href: '/sniper', icon: Target },
     { name: 'Tool 3', href: '/tool3', icon: Microscope },
     { name: 'Tool 4', href: '/tool4', icon: Wrench },
 ];
@@ -49,7 +49,7 @@ const NavLayout = ({ children }: { children: ReactNode }) => {
                 <div className="container flex h-16 items-center justify-between">
                     <div className="flex items-center">
                         <Link href="/" className="flex items-center mr-8">
-                            <div className="relative h-12 w-12">
+                            <div className="relative h-24 w-24">
                                 <Image
                                     src="/logo.png"
                                     alt="KAS.tools Logo"

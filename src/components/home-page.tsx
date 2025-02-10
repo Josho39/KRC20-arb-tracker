@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Calculator, LineChart, Microscope, Wrench } from 'lucide-react';
+import { Calculator, Microscope, Wrench, Target } from 'lucide-react';
 
 const tools = [
   {
@@ -18,7 +18,7 @@ const tools = [
     name: 'Tool 2',
     description: 'Advanced market analysis and visualization tools for KRC20 tokens.',
     href: '/tool2',
-    icon: LineChart,
+    icon: Target,
     color: 'text-green-500',
     details: 'Dive deep into market trends with comprehensive charting tools and technical analysis indicators.'
   },
