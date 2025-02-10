@@ -15,12 +15,12 @@ const tools = [
     details: 'Track real-time price differences across exchanges and identify profitable trading opportunities with our advanced arbitrage calculator.'
   },
   {
-    name: 'Tool 2',
-    description: 'Advanced market analysis and visualization tools for KRC20 tokens.',
-    href: '/tool2',
+    name: 'Sniper',
+    description: 'Advanced sniping of krc prices changes.',
+    href: '/sniper',
     icon: Target,
     color: 'text-green-500',
-    details: 'Dive deep into market trends with comprehensive charting tools and technical analysis indicators.'
+    details: 'Dive deep into market liqudity and price movement comprehensive sniping tools with technical analysis indicators.'
   },
   {
     name: 'Tool 3',

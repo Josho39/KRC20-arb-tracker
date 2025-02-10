@@ -77,7 +77,7 @@ const SniperTimeline = () => {
 
   const fetchNotificationSettings = async () => {
     if (!telegramUser?.id) return;
-    
+
     try {
       const response = await fetch(`/api/notifications/settings?telegramId=${telegramUser.id}`);
       if (!response.ok) {
@@ -99,6 +99,14 @@ const SniperTimeline = () => {
     }
 
     try {
+      console.log('Sending request with:', {
+        telegramId: telegramUser.id,
+        enabled: newEnabled,
+        threshold: notificationThreshold
+      });
+
+      setNotificationsEnabled(newEnabled); // Optimistic update
+
       const response = await fetch('/api/notifications/settings', {
         method: 'POST',
         headers: {
@@ -110,21 +118,29 @@ const SniperTimeline = () => {
           threshold: notificationThreshold
         }),
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update notification settings');
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      const textResponse = await response.text();
+      console.log('Raw response:', textResponse);
+
+      let data;
+      try {
+        data = JSON.parse(textResponse);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        throw new Error('Invalid response format');
       }
 
-      const data = await response.json();
-      if (data.success) {
-        setNotificationsEnabled(newEnabled);
-        setError(null);
-      } else {
-        throw new Error('Failed to update settings');
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to update settings');
       }
+
+      console.log('Settings updated successfully:', data);
+
     } catch (err) {
-      console.error('Handler error:', err);
+      console.error('Full error details:', err);
       setError('Failed to update notification settings');
       setNotificationsEnabled(!newEnabled);
     }
@@ -204,10 +220,10 @@ const SniperTimeline = () => {
         <CardHeader>
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div className="flex flex-wrap gap-2 items-center">
-              <Button 
-                onClick={fetchSnipes} 
+              <Button
+                onClick={fetchSnipes}
                 disabled={isLoading}
-                className="flex items-center gap-2" 
+                className="flex items-center gap-2"
                 variant="outline"
               >
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
@@ -217,8 +233,8 @@ const SniperTimeline = () => {
               <LiveBadge />
               {connectionStatus === 'error' && (
                 <Badge >
-              
-              .
+
+                  .
                 </Badge>
               )}
             </div>
@@ -242,11 +258,12 @@ const SniperTimeline = () => {
                       <Switch
                         id="notifications"
                         checked={notificationsEnabled}
-                        onCheckedChange={(checked) => {
-                          handleNotificationSettingChange(checked).catch(error => {
+                        onCheckedChange={async (checked) => {
+                          try {
+                            await handleNotificationSettingChange(checked);
+                          } catch (error) {
                             console.error('Switch error:', error);
-                            setError('Failed to update notification settings');
-                          });
+                          }
                         }}
                       />
                     </div>
@@ -311,7 +328,7 @@ const SniperTimeline = () => {
                   {error}
                 </div>
               )}
-              
+
               {isLoading ? (
                 <div className="flex items-center justify-center h-40">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -323,22 +340,22 @@ const SniperTimeline = () => {
               ) : (
                 <div className="relative">
                   <div className="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-border via-border/50 to-transparent" />
-                  
+
                   {filteredSnipes.map((snipe) => {
                     const date = new Date(snipe.timestamp);
                     const formattedTime = date.toLocaleTimeString();
                     const formattedDate = date.toLocaleDateString();
                     const isIncrease = snipe.direction === 'increase';
-                    
+
                     return (
                       <div key={snipe._id} className="relative pl-8 pb-8 group">
                         <div className={`absolute left-0 w-3 h-3 rounded-full -translate-x-1/2 
                           ${isIncrease ? 'bg-green-500' : 'bg-red-500'}
                           shadow-lg shadow-${isIncrease ? 'green' : 'red'}-500/50
                           transition-all duration-4000 ease-in-out
-                          animate-pulse`} 
+                          animate-pulse`}
                         />
-                        
+
                         <div className={`bg-card rounded-lg border p-6 shadow-sm
                           transition-all duration-300
                           hover:shadow-xl hover:scale-[1.01]
@@ -372,7 +389,7 @@ const SniperTimeline = () => {
                               {formattedDate} {formattedTime}
                             </div>
                           </div>
-                          
+
                           <p className="mt-3 text-sm text-muted-foreground">
                             {snipe.alert_message}
                           </p>
