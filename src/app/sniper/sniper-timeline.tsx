@@ -94,15 +94,11 @@ const SniperTimeline = () => {
 
   const handleNotificationSettingChange = async (newEnabled: boolean) => {
     if (!telegramUser) {
-      console.log('No telegram user found');
       setError('Please log in with Telegram first');
       return;
     }
 
     try {
-      console.log('Updating notifications to:', newEnabled);
-      console.log('Telegram ID:', telegramUser.id);
-      
       const response = await fetch('/api/notifications/settings', {
         method: 'POST',
         headers: {
@@ -117,16 +113,20 @@ const SniperTimeline = () => {
       
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('API Error:', errorData);
         throw new Error(errorData.error || 'Failed to update notification settings');
       }
 
-      setNotificationsEnabled(newEnabled);
-      setError(null);
-      
+      const data = await response.json();
+      if (data.success) {
+        setNotificationsEnabled(newEnabled);
+        setError(null);
+      } else {
+        throw new Error('Failed to update settings');
+      }
     } catch (err) {
       console.error('Handler error:', err);
       setError('Failed to update notification settings');
+      setNotificationsEnabled(!newEnabled);
     }
   };
 
@@ -216,9 +216,9 @@ const SniperTimeline = () => {
               </Button>
               <LiveBadge />
               {connectionStatus === 'error' && (
-                <Badge variant="destructive" className="animate-pulse">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  Reconnecting...
+                <Badge >
+              
+              .
                 </Badge>
               )}
             </div>
@@ -242,7 +242,12 @@ const SniperTimeline = () => {
                       <Switch
                         id="notifications"
                         checked={notificationsEnabled}
-                        onCheckedChange={(checked) => handleNotificationSettingChange(checked)}
+                        onCheckedChange={(checked) => {
+                          handleNotificationSettingChange(checked).catch(error => {
+                            console.error('Switch error:', error);
+                            setError('Failed to update notification settings');
+                          });
+                        }}
                       />
                     </div>
                     {notificationsEnabled && (

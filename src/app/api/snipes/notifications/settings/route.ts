@@ -9,7 +9,11 @@ export async function GET(request: Request) {
     const telegramId = url.searchParams.get('telegramId');
 
     if (!telegramId) {
-      return NextResponse.json({ error: 'Telegram ID required' }, { status: 400 });
+      return NextResponse.json({ 
+        error: 'Telegram ID required',
+        enabled: false,
+        threshold: 5 
+      });
     }
 
     const client = await MongoClient.connect(MONGODB_URI);
@@ -29,16 +33,20 @@ export async function GET(request: Request) {
     return NextResponse.json(settings);
   } catch (error) {
     console.error('GET settings error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch notification settings' },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      error: 'Failed to fetch notification settings',
+      enabled: false,
+      threshold: 5
+    });
   }
 }
 
 export async function POST(request: Request) {
   try {
+    console.log('Received POST request to /api/notifications/settings');
     const body = await request.json();
+    console.log('Request body:', body);
+    
     const { telegramId, enabled, threshold } = body;
     
     if (!telegramId) {
@@ -49,29 +57,38 @@ export async function POST(request: Request) {
     const db = client.db('users');
     const collection = db.collection('notification_settings');
     
-    const result = await collection.updateOne(
+    const updateResult = await collection.updateOne(
       { telegramId: telegramId },
       { 
         $set: { 
           enabled,
           threshold,
           updatedAt: new Date()
+        },
+        $setOnInsert: {
+          createdAt: new Date()
         }
       },
       { upsert: true }
     );
 
     await client.close();
+
+    console.log('Update result:', updateResult);
     
-    if (result.acknowledged) {
-      return NextResponse.json({ success: true, enabled, threshold });
-    } else {
-      throw new Error('Database update not acknowledged');
-    }
+    return NextResponse.json({
+      success: true,
+      enabled,
+      threshold
+    });
+
   } catch (error) {
     console.error('POST settings error:', error);
     return NextResponse.json(
-      { error: 'Failed to update notification settings' },
+      { 
+        error: 'Failed to update notification settings',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
