@@ -3,10 +3,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUp, ArrowDown, RefreshCw, Loader2, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { ArrowUp, ArrowDown, RefreshCw, Loader2, TrendingUp, TrendingDown, AlertCircle, Bell, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// import AuthCheck from '@/components/auth-chec';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 const LiveBadge = () => {
@@ -41,14 +44,78 @@ interface SnipeData {
   timestamp: string;
 }
 
+interface TelegramUser {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  photo_url?: string;
+  auth_date: number;
+  hash: string;
+}
+
 const SniperTimeline = () => {
   const [snipes, setSnipes] = useState<SnipeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error'>('disconnected');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationThreshold, setNotificationThreshold] = useState(5);
+  const [minPercentageFilter, setMinPercentageFilter] = useState(0);
+  const [telegramUser, setTelegramUser] = useState<TelegramUser | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const eventSourceRef = useRef<EventSource | null>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('telegramUser');
+    if (storedUser) {
+      setTelegramUser(JSON.parse(storedUser));
+      fetchNotificationSettings();
+    }
+  }, []);
+
+  const fetchNotificationSettings = async () => {
+    try {
+      const response = await fetch('/api/notifications/settings');
+      if (response.ok) {
+        const data = await response.json();
+        setNotificationsEnabled(data.enabled);
+        setNotificationThreshold(data.threshold);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notification settings:', error);
+    }
+  };
+
+  const handleNotificationSettingChange = async (newEnabled?: boolean) => {
+    if (!telegramUser) {
+      setError('Please log in with Telegram first');
+      return;
+    }
+
+    try {
+      setNotificationsEnabled(newEnabled ?? !notificationsEnabled);
+      
+      const response = await fetch('/api/notifications/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          telegramId: telegramUser.id,
+          enabled: newEnabled ?? !notificationsEnabled,
+          threshold: notificationThreshold
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to update notification settings');
+      setError(null);
+    } catch {
+      setError('Failed to update notification settings');
+      setNotificationsEnabled(newEnabled !== undefined ? !newEnabled : notificationsEnabled); 
+    }
+  };
 
   const connectSSE = useCallback(() => {
     if (eventSourceRef.current) {
@@ -112,9 +179,11 @@ const SniperTimeline = () => {
     };
   }, [connectSSE]);
 
-  const filteredSnipes = snipes.filter(snipe => 
-    snipe.token_address.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredSnipes = snipes.filter(snipe => {
+    const matchesSearch = snipe.token_address.toLowerCase().includes(filter.toLowerCase());
+    const meetsThreshold = Math.abs(snipe.change_percentage) >= minPercentageFilter;
+    return matchesSearch && meetsThreshold;
+  });
 
   return (
     <div className="container max-w-screen-2xl mx-auto p-4">
@@ -140,6 +209,66 @@ const SniperTimeline = () => {
                 </Badge>
               )}
             </div>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Alert Settings</SheetTitle>
+                </SheetHeader>
+                <div className="space-y-6 py-4">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="notifications" className="flex items-center gap-2">
+                        <Bell className="h-4 w-4" />
+                        Telegram Notifications
+                      </Label>
+                      <Switch
+                        id="notifications"
+                        checked={notificationsEnabled}
+                        onCheckedChange={(checked) => handleNotificationSettingChange(checked)}
+                      />
+                    </div>
+                    {notificationsEnabled && (
+                      <div className="space-y-2">
+                        <Label>Notification Threshold (%)</Label>
+                        <div className="flex items-center gap-4">
+                          <Slider
+                            value={[notificationThreshold]}
+                            onValueChange={(values) => {
+                              setNotificationThreshold(values[0]);
+                              handleNotificationSettingChange();
+                            }}
+                            min={0}
+                            max={50}
+                            step={0.5}
+                            className="flex-1"
+                          />
+                          <span className="min-w-[3rem] text-sm">{notificationThreshold}%</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <Label>Filter Changes Above (%)</Label>
+                      <div className="flex items-center gap-4">
+                        <Slider
+                          value={[minPercentageFilter]}
+                          onValueChange={(values) => setMinPercentageFilter(values[0])}
+                          min={0}
+                          max={50}
+                          step={0.5}
+                          className="flex-1"
+                        />
+                        <span className="min-w-[3rem] text-sm">{minPercentageFilter}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </CardHeader>
         <CardContent>
@@ -187,7 +316,9 @@ const SniperTimeline = () => {
                       <div key={snipe._id} className="relative pl-8 pb-8 group">
                         <div className={`absolute left-0 w-3 h-3 rounded-full -translate-x-1/2 
                           ${isIncrease ? 'bg-green-500' : 'bg-red-500'}
-                          shadow-lg shadow-${isIncrease ? 'green' : 'red'}-500/50`} 
+                          shadow-lg shadow-${isIncrease ? 'green' : 'red'}-500/50
+                          transition-all duration-1000 ease-in-out
+                          animate-[ping_4s_ease-in-out_infinite]`} 
                         />
                         
                         <div className={`bg-card rounded-lg border p-6 shadow-sm
