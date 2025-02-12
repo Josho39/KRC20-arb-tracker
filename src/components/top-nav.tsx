@@ -14,7 +14,6 @@ const TopNav: React.FC<TopNavProps> = ({ onMenuClick }) => {
   const { theme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
-  // Avoid hydration mismatch
   React.useEffect(() => {
     setMounted(true);
   }, []);
