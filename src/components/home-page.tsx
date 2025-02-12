@@ -1,69 +1,113 @@
-'use client';
+'use client'
 
-import React from 'react';
-import Link from 'next/link';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Calculator, Microscope, Wrench, Target } from 'lucide-react';
+import { Calculator, Target, Rocket, Brain, Check, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 
 const tools = [
   {
-    name: 'Arb Calculator',
-    description: 'Calculate and analyze arbitrage opportunities across different KRC20 token markets in real-time.',
+    name: 'Arbitrage Tools',
+    description: 'Track and analyze arbitrage opportunities across KRC20 markets.',
     href: '/arbcalc',
     icon: Calculator,
-    color: 'text-blue-500',
-    details: 'Track real-time price differences across exchanges and identify profitable trading opportunities with our advanced arbitrage calculator.'
+    bgColor: 'bg-[#FFC400]/10',
+    iconColor: 'text-[#FFC400]',
+    details: 'Real-time arbitrage monitoring across multiple exchanges. Track price differences, calculate profit opportunities, and execute trades efficiently.'
   },
   {
-    name: 'Sniper',
-    description: 'Advanced sniping of krc prices changes.',
+    name: 'NFT Tools',
+    description: 'Advanced NFT price analysis and tracking tools.',
+    href: '/nfts',
+    icon: Rocket,
+    bgColor: 'bg-[#70c7ba]/10',
+    iconColor: 'text-[#70c7ba]',
+    details: 'Comprehensive NFT market analysis tools. Track floor prices, monitor rare traits, and identify profitable trading opportunities.'
+  },
+  {
+    name: 'Token Sniper',
+    description: 'Real-time token price monitoring and alerts.',
     href: '/sniper',
     icon: Target,
-    color: 'text-green-500',
-    details: 'Dive deep into market liqudity and price movement comprehensive sniping tools with technical analysis indicators.'
+    bgColor: 'bg-red-500/10',
+    iconColor: 'text-red-500',
+    details: 'Advanced sniping tools with real-time price alerts, technical analysis indicators, and automated trading features.'
   },
   {
-    name: 'Tool 3',
-    description: 'Track and analyze your KRC20 token portfolio performance.',
-    href: '/tool3',
-    icon: Microscope,
-    color: 'text-purple-500',
-    details: 'Monitor your portfolio performance with detailed analytics and real-time tracking features.'
+    name: 'KAS AI',
+    description: 'AI-powered market analysis and predictions.',
+    href: '/kasai',
+    icon: Brain,
+    bgColor: 'bg-purple-500/10',
+    iconColor: 'text-purple-500',
+    details: 'Leverage artificial intelligence for market predictions, trend analysis, and automated trading strategies.'
+  }
+];
+
+const premiumPlans = [
+  {
+    name: 'KAS.TOOLS VIP',
+    description: 'Enhanced features for serious traders',
+    color: 'bg-[#70c7ba]',
+    textColor: 'text-[#70c7ba]',
+    features: [
+      'Priority access to new features',
+      'Advanced trading indicators',
+      'Custom alert configurations',
+      'Premium support channel'
+    ]
   },
   {
-    name: 'Tool 4',
-    description: 'Additional trading utilities and analysis tools.',
-    href: '/tool4',
-    icon: Wrench,
-    color: 'text-orange-500',
-    details: 'Access a suite of specialized trading tools designed to enhance your trading strategy.'
+    name: 'KAS.TOOLS PRO',
+    description: 'Professional trading suite',
+    color: 'bg-[#FFC400]',
+    textColor: 'text-[#FFC400]',
+    features: [
+      'All VIP features included',
+      'API access for automated trading',
+      'Real-time market data feeds',
+      'Unlimited sniper configurations'
+    ]
   }
 ];
 
 const HomePage = () => {
-  return (
-    <div className="space-y-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight text-primary">KAS.TOOLS</h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Comprehensive tools for token analysis, trading, and portfolio management
-        </p>
-      </div>
+  const [flippedCards, setFlippedCards] = useState<{[key: string]: boolean}>({});
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {tools.map((tool) => {
-          const Icon = tool.icon;
-          return (
-            <div key={tool.name} className="group relative h-[200px] w-full [perspective:1000px] cursor-pointer">
-              <div className="absolute inset-0 transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)]">
+  const toggleCard = (toolName: string) => {
+    setFlippedCards(prev => ({
+      ...prev,
+      [toolName]: !prev[toolName]
+    }));
+  };
+
+  return (
+    <div className="min-h-screen bg-background p-4 pt-10">
+      <div className="max-w-7xl mx-auto space-y-3">
+        <div className="text-center space-y-4">
+          <p className="text-xl text-muted-foreground max-w-7xl mx-auto">
+            Comprehensive tools for KRC analysis, trading, and portfolio management
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {tools.map((tool) => (
+            <div 
+              key={tool.name} 
+              className="group relative h-[200px] w-full [perspective:1000px]"
+              onClick={() => toggleCard(tool.name)}
+            >
+              <div className={`absolute inset-0 transition-all duration-500 [transform-style:preserve-3d] md:group-hover:[transform:rotateY(180deg)] ${
+                flippedCards[tool.name] ? '[transform:rotateY(180deg)]' : ''
+              } md:[transform:rotateY(0deg)]`}>
                 <Card className="absolute inset-0 h-full w-full [backface-visibility:hidden]">
                   <CardHeader>
                     <div className="flex items-center gap-4">
-                      <div className={`p-2 rounded-lg bg-background border ${tool.color}`}>
-                        <Icon className="h-6 w-6" />
+                      <div className={`p-3 rounded-lg ${tool.bgColor}`}>
+                        <tool.icon className={`h-6 w-6 ${tool.iconColor}`} />
                       </div>
                       <div>
-                        <CardTitle className="text-primary">
+                        <CardTitle className="text-lg font-semibold">
                           {tool.name}
                         </CardTitle>
                         <CardDescription className="mt-1">
@@ -74,7 +118,8 @@ const HomePage = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="flex items-center text-sm text-muted-foreground">
-                      <span>Hover to learn more →</span>
+                      <span className="md:block hidden">Hover to learn more →</span>
+                      <span className="md:hidden block">Tap to flip card →</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -90,6 +135,7 @@ const HomePage = () => {
                     <Link 
                       href={tool.href}
                       className="inline-flex items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium text-primary hover:bg-secondary transition-colors"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       Get Started →
                     </Link>
@@ -97,13 +143,38 @@ const HomePage = () => {
                 </Card>
               </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
 
-      <div className="mt-12 text-center">
-        <div className="inline-flex items-center rounded-lg bg-muted px-3 py-1 text-sm font-medium">
-          🚀 More tools coming soon
+        <div className="mt-12 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {premiumPlans.map((plan) => (
+              <Card 
+                key={plan.name}
+                className={`relative overflow-hidden border-2 hover:border-${plan.color} transition-all duration-300`}
+              >
+                <div className={`absolute top-0 right-0 w-32 h-32 ${plan.color} opacity-10 rounded-full -translate-y-16 translate-x-16`} />
+                <CardHeader>
+                  <CardTitle className={plan.textColor}>{plan.name}</CardTitle>
+                  <CardDescription>{plan.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-center gap-2">
+                        <Check className={`h-4 w-4 ${plan.textColor}`} />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <button className={`mt-6 w-full py-2 px-4 rounded-lg ${plan.color} text-white font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2`}>
+                    Upgrade Now
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     </div>

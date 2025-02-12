@@ -1,16 +1,17 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { ArrowUp, ArrowDown, RefreshCw, Loader2, TrendingUp, TrendingDown, AlertCircle, Bell, Settings } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowUp, ArrowDown, RefreshCw, Loader2, TrendingUp, TrendingDown, AlertCircle, Bell, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
+// import AuthCheck from '@/components/auth-chec';
 
 const LiveBadge = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -105,7 +106,7 @@ const SniperTimeline = () => {
         threshold: notificationThreshold
       });
 
-      setNotificationsEnabled(newEnabled); // Optimistic update
+      setNotificationsEnabled(newEnabled); 
 
       const response = await fetch('/api/notifications/settings', {
         method: 'POST',
