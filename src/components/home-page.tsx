@@ -46,18 +46,6 @@ const tools = [
 
 const premiumPlans = [
   {
-    name: 'KAS.TOOLS VIP',
-    description: 'Enhanced features for serious traders',
-    color: 'bg-[#70c7ba]',
-    textColor: 'text-[#70c7ba]',
-    features: [
-      'Priority access to new features',
-      'Advanced trading indicators',
-      'Custom alert configurations',
-      'Premium support channel'
-    ]
-  },
-  {
     name: 'KAS.TOOLS PRO',
     description: 'Professional trading suite',
     color: 'bg-[#FFC400]',
@@ -67,6 +55,18 @@ const premiumPlans = [
       'API access for automated trading',
       'Real-time market data feeds',
       'Unlimited sniper configurations'
+    ]
+  },
+  {
+    name: 'KAS.TOOLS VIP',
+    description: 'Enhanced features for serious traders',
+    color: 'bg-[#70c7ba]',
+    textColor: 'text-[#70c7ba]',
+    features: [
+      'Priority access to new features',
+      'Advanced trading indicators',
+      'Custom alert configurations',
+      'Premium support channel'
     ]
   }
 ];
