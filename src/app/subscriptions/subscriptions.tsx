@@ -22,10 +22,12 @@ const SubscriptionsPage = () => {
       icon: theme === 'dark' ? '/logodarkmode.png' : '/logo.png',
       price: 'Free',
       benefits: [
-        'Basic arbitrage monitoring',
-        'Standard price alerts',
-        'Public chat access',
-        'Basic market data'
+        'NFT information (buys, sells, mints, rarity)',
+        'Two token arbitrage (NACHO and ARB)',
+        'Top 2 token delayed sniper',
+        'KasAI access (with Telegram signup)',
+        'Access to social channels',
+        'Basic website features with ads'
       ]
     },
     {
@@ -33,13 +35,16 @@ const SubscriptionsPage = () => {
       bgColor: 'bg-[#FFC400]',
       titleColor: 'text-black dark:text-white',
       icon: theme === 'dark' ? '/logodarkmode.png' : '/logo.png',
-      price: '$49/month',
+      price: '25',
+      yearlyPrice: '22.50',
       benefits: [
-        'Advanced arbitrage features',
-        'Priority alerts',
-        'Premium chat access',
-        'Advanced market data',
-        'API access'
+        'Top 6 token arbitrage monitoring',
+        'Top 6 live token sniper',
+        'Regular whale tracking',
+        'Wallet profiler access',
+        'NFT snipes alerts',
+        'Velocity 1.0 features',
+        'Reduced website ads'
       ]
     },
     {
@@ -47,14 +52,16 @@ const SubscriptionsPage = () => {
       bgColor: 'bg-[#70c7ba]',
       titleColor: 'text-black dark:text-white',
       icon: theme === 'dark' ? '/logodarkmode.png' : '/logo.png',
-      price: '$99/month',
+      price: '50',
+      yearlyPrice: '45',
       benefits: [
-        'All PRO features',
-        'Instant alerts',
-        'Private chat room',
-        'Custom indicators',
-        'Priority support',
-        'Strategy automation'
+        'Full access arbitrage with custom alerts',
+        'Complete sniper access with custom alerts',
+        'Advanced whale tracking with CG wallet',
+        'Custom alerts configuration',
+        'Discounts on custom bots',
+        'Velocity 2.0 features',
+        'Ad-free experience'
       ]
     }
   ];
@@ -75,13 +82,13 @@ const SubscriptionsPage = () => {
             <Card 
               key={tier.name}
               className={cn(
-                "overflow-hidden border-2 transition-transform hover:scale-105 relative h-[600px]",
+                "overflow-hidden border-2 transition-transform hover:scale-105 relative h-[550px]",
                 tier.bgColor,
                 tier.name === 'LITE' && theme === 'dark' ? 'bg-background' : ''
               )}
             >
-              <CardHeader className="text-center pb-8">
-                <div className="w-24 h-24 mx-auto mb-4 relative">
+              <CardHeader className="text-center pb-4 pt-4">
+                <div className="w-20 h-20 mx-auto mb-2 relative">
                   <Image
                     src={tier.icon}
                     alt={`${tier.name} icon`}
@@ -93,23 +100,20 @@ const SubscriptionsPage = () => {
                 <div className={`text-2xl font-bold ${tier.titleColor}`}>
                   KAS.TOOLS {tier.name}
                 </div>
-                <div className={`text-xl font-semibold mt-2 ${tier.titleColor}`}>
-                  {tier.price}
-                </div>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-4">
+                <ul className="space-y-3">
                   {tier.benefits.map((benefit, index) => (
                     <li 
                       key={index}
                       className={cn(
                         "flex items-center gap-2",
-                        "text-black dark:text-white"
+                        "text-black dark:text-white text-sm"
                       )}
                     >
                       <svg
                         className={cn(
-                          "h-5 w-5",
+                          "h-4 w-4 flex-shrink-0",
                           "text-black dark:text-white"
                         )}
                         fill="none"
@@ -125,7 +129,24 @@ const SubscriptionsPage = () => {
                     </li>
                   ))}
                 </ul>
-                <div className="absolute bottom-8 left-4 right-4">
+                <div className="absolute bottom-6 left-4 right-4 space-y-4">
+                  {tier.price !== 'Free' ? (
+                    <div className={`flex flex-col items-center ${tier.titleColor}`}>
+                      <div className="text-2xl font-bold">
+                        ${tier.yearlyPrice}
+                      </div>
+                      <div className="text-sm text-muted-foreground text-center">
+                        Per month with annual subscription discount; ${Number(tier.yearlyPrice) * 12} billed up front. ${tier.price} if billed monthly.
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={`text-center ${tier.titleColor}`}>
+                      <div className="text-2xl font-bold">Free</div>
+                      <div className="text-sm text-muted-foreground">
+                        No credit card required
+                      </div>
+                    </div>
+                  )}
                   <button
                     className={cn(
                       "w-full py-3 px-4 rounded-lg font-semibold transition-opacity hover:opacity-90",
