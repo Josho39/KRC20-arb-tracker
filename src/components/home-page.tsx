@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Calculator, Target, Rocket, Brain, Check, ChevronRight } from 'lucide-react';
+import { Calculator, Target, Rocket, Wallet, Brain, Check, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 const tools = [
@@ -14,6 +14,15 @@ const tools = [
     bgColor: 'bg-[#FFC400]/10',
     iconColor: 'text-[#FFC400]',
     details: 'Real-time arbitrage monitoring across multiple exchanges. Track price differences, calculate profit opportunities, and execute trades efficiently.'
+  },
+  {
+    name: 'Wallet Watcher',
+    description: 'Track wallet balances and transaction history.',
+    href: '/watcher',
+    icon: Wallet,
+    bgColor: 'bg-[#6366f1]/10',
+    iconColor: 'text-[#6366f1]',
+    details: 'Monitor Kaspa wallet activity, track balance changes, and analyze transaction patterns in real-time with detailed visualizations.'
   },
   {
     name: 'NFT Tools',
@@ -35,12 +44,12 @@ const tools = [
   },
   {
     name: 'KAS AI',
-    description: 'AI-powered market analysis and predictions.',
+    description: 'AI-powered assistant for Kaspa ecosystem.',
     href: '/kasai',
     icon: Brain,
     bgColor: 'bg-purple-500/10',
     iconColor: 'text-purple-500',
-    details: 'Leverage artificial intelligence for market predictions, trend analysis, and automated trading strategies.'
+    details: 'Get instant answers about Kaspa, KRC20 tokens, wallets, and the ecosystem from our AI assistant.'
   }
 ];
 
