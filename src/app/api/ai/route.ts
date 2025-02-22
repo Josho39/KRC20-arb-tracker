@@ -3,6 +3,7 @@ import { GoogleGenerativeAI, ModelParams } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || 'AIzaSyCHxiiPYxRrGkZ_t0nX1bTp5Hi4F5F93To');
 const modelId: ModelParams = { model: "gemini-2.0-flash-exp" };
+
 const initialHistory = [
   {
     role: "user",
@@ -22,6 +23,16 @@ const initialHistory = [
   }
 ];
 
+function processResponse(text: string): string {
+  let processedText = text;
+  
+  processedText = processedText.replace(/\n\s*\n/g, '\n\n');
+  processedText = processedText.replace(/\*\*\*([^*]+):/g, '**$1:**');
+  processedText = processedText.replace(/\* \*\*([^*]+)\*\*/g, '**$1**');
+  
+  return processedText;
+}
+
 async function fetchKaspaInfo(query: string) {
   try {
     const model = genAI.getGenerativeModel(modelId);
@@ -33,11 +44,15 @@ async function fetchKaspaInfo(query: string) {
     
     const result = await chat.sendMessage(query);
     const response = await result.response;
-    const textContent = response.text();
+    const rawContent = response.text();
+    const processedContent = processResponse(rawContent);
     
     return {
       success: true,
-      data: textContent
+      data: {
+        raw: rawContent,
+        processed: processedContent
+      }
     };
     
   } catch (error) {
@@ -70,7 +85,17 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ response: result.data });
+    if (result.data) {
+      return NextResponse.json({
+        response: result.data.processed,
+        rawResponse: result.data.raw
+      });
+    } else {
+      return NextResponse.json(
+        { error: 'Failed to process Kaspa information' },
+        { status: 500 }
+      );
+    }
     
   } catch (error) {
     console.error('API route error:', error);
