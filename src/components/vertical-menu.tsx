@@ -1,5 +1,5 @@
 import React, { Dispatch, SetStateAction } from 'react';
-import { Home, Calculator, Target, Rocket, Brain, CreditCard, Wallet } from 'lucide-react';
+import { Home, Calculator, Target, Rocket, Brain, CreditCard, Wallet, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ const VerticalMenu: React.FC<VerticalMenuProps> = ({ isOpen, setIsOpen }) => {
     { name: 'Wallet Watcher', href: '/watcher', icon: Wallet },
     { name: 'NFTs', href: '/nfts', icon: Rocket },
     { name: 'KAS AI', href: '/kasai', icon: Brain },
+    { name: 'Velocity', href: '/velocity', icon: Zap },
     { name: 'Subscriptions', href: '/subscriptions', icon: CreditCard },
   ];
 

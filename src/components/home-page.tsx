@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Calculator, Target, Rocket, Wallet, Brain, Check, ChevronRight } from 'lucide-react';
+import { Calculator, Target, Rocket, Wallet, Brain, Check, ChevronRight, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 const tools = [
@@ -50,6 +50,15 @@ const tools = [
     bgColor: 'bg-purple-500/10',
     iconColor: 'text-purple-500',
     details: 'Get instant answers about Kaspa, KRC20 tokens, wallets, and the ecosystem from our AI assistant.'
+  },
+  {
+    name: 'Velocity',
+    description: 'High-speed trading and market analysis platform.',
+    href: '/velocity',
+    icon: Zap,
+    bgColor: 'bg-amber-500/10',
+    iconColor: 'text-amber-500',
+    details: 'Advanced trading automation with custom strategies, real-time market analysis, and high-frequency trading capabilities.'
   }
 ];
 
@@ -81,7 +90,7 @@ const premiumPlans = [
 ];
 
 const HomePage = () => {
-  const [flippedCards, setFlippedCards] = useState<{[key: string]: boolean}>({});
+  const [flippedCards, setFlippedCards] = useState<{ [key: string]: boolean }>({});
 
   const toggleCard = (toolName: string) => {
     setFlippedCards(prev => ({
@@ -93,22 +102,15 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-background p-4 pt-10">
       <div className="max-w-7xl mx-auto space-y-3">
-        <div className="text-center space-y-4">
-          <p className="text-xl text-muted-foreground max-w-7xl mx-auto">
-            Comprehensive tools for KRC analysis, trading, and portfolio management
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tools.map((tool) => (
-            <div 
-              key={tool.name} 
+            <div
+              key={tool.name}
               className="group relative h-[200px] w-full [perspective:1000px]"
               onClick={() => toggleCard(tool.name)}
             >
-              <div className={`absolute inset-0 transition-all duration-500 [transform-style:preserve-3d] md:group-hover:[transform:rotateY(180deg)] ${
-                flippedCards[tool.name] ? '[transform:rotateY(180deg)]' : ''
-              } md:[transform:rotateY(0deg)]`}>
+              <div className={`absolute inset-0 transition-all duration-500 [transform-style:preserve-3d] md:group-hover:[transform:rotateY(180deg)] ${flippedCards[tool.name] ? '[transform:rotateY(180deg)]' : ''
+                } md:[transform:rotateY(0deg)]`}>
                 <Card className="absolute inset-0 h-full w-full [backface-visibility:hidden]">
                   <CardHeader>
                     <div className="flex items-center gap-4">
@@ -141,7 +143,7 @@ const HomePage = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="absolute bottom-4 left-4">
-                    <Link 
+                    <Link
                       href={tool.href}
                       className="inline-flex items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium text-primary hover:bg-secondary transition-colors"
                       onClick={(e) => e.stopPropagation()}
@@ -158,7 +160,7 @@ const HomePage = () => {
         <div className="mt-12 text-center">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {premiumPlans.map((plan) => (
-              <Card 
+              <Card
                 key={plan.name}
                 className={`relative overflow-hidden border-2 hover:border-${plan.color} transition-all duration-300`}
               >
