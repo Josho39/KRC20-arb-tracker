@@ -90,7 +90,7 @@ const premiumPlans = [
 ];
 
 const HomePage = () => {
-  const [flippedCards, setFlippedCards] = useState<{ [key: string]: boolean }>({});
+  const [flippedCards, setFlippedCards] = useState<{[key: string]: boolean}>({});
 
   const toggleCard = (toolName: string) => {
     setFlippedCards(prev => ({
@@ -102,15 +102,22 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-background p-4 pt-10">
       <div className="max-w-7xl mx-auto space-y-3">
+        <div className="text-center space-y-4">
+          <p className="text-xl text-muted-foreground max-w-7xl mx-auto">
+            Comprehensive tools for KRC analysis, trading, and portfolio management
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tools.map((tool) => (
-            <div
-              key={tool.name}
+            <div 
+              key={tool.name} 
               className="group relative h-[200px] w-full [perspective:1000px]"
               onClick={() => toggleCard(tool.name)}
             >
-              <div className={`absolute inset-0 transition-all duration-500 [transform-style:preserve-3d] md:group-hover:[transform:rotateY(180deg)] ${flippedCards[tool.name] ? '[transform:rotateY(180deg)]' : ''
-                } md:[transform:rotateY(0deg)]`}>
+              <div className={`absolute inset-0 transition-all duration-500 [transform-style:preserve-3d] md:group-hover:[transform:rotateY(180deg)] ${
+                flippedCards[tool.name] ? '[transform:rotateY(180deg)]' : ''
+              } md:[transform:rotateY(0deg)]`}>
                 <Card className="absolute inset-0 h-full w-full [backface-visibility:hidden]">
                   <CardHeader>
                     <div className="flex items-center gap-4">
@@ -143,7 +150,7 @@ const HomePage = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="absolute bottom-4 left-4">
-                    <Link
+                    <Link 
                       href={tool.href}
                       className="inline-flex items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium text-primary hover:bg-secondary transition-colors"
                       onClick={(e) => e.stopPropagation()}
@@ -160,7 +167,7 @@ const HomePage = () => {
         <div className="mt-12 text-center">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {premiumPlans.map((plan) => (
-              <Card
+              <Card 
                 key={plan.name}
                 className={`relative overflow-hidden border-2 hover:border-${plan.color} transition-all duration-300`}
               >
@@ -178,10 +185,13 @@ const HomePage = () => {
                       </li>
                     ))}
                   </ul>
-                  <button className={`mt-6 w-full py-2 px-4 rounded-lg ${plan.color} text-white font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2`}>
+                  <Link 
+                    href="/subscriptions"
+                    className={`mt-6 w-full py-2 px-4 rounded-lg ${plan.color} text-white font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2`}
+                  >
                     Upgrade Now
                     <ChevronRight className="h-4 w-4" />
-                  </button>
+                  </Link>
                 </CardContent>
               </Card>
             ))}

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -56,8 +55,12 @@ const VelocityPage = () => {
       
       const data = await response.json();
       setVelocityAlerts(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch velocity data');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to fetch velocity data');
+      }
       console.error('Error:', err);
     } finally {
       setIsLoading(false);
@@ -95,14 +98,25 @@ const VelocityPage = () => {
     setItemsPerPage(parseInt(value));
   };
 
-  const getCategoryBadgeColor = (category: string) => {
-    switch (category.toLowerCase()) {
+  const getAlertTypeFromMessage = (message: string): string => {
+    if (message.startsWith('MINT ALERT')) {
+      return 'MINT';
+    } else if (message.startsWith('VOLUME ALERT')) {
+      return 'VOLUME';
+    } else if (message.startsWith('PRICE ALERT')) {
+      return 'PRICE';
+    } else {
+      return 'ALERT';
+    }
+  };
+
+  const getCategoryBadgeColor = (message: string) => {
+    const alertType = getAlertTypeFromMessage(message).toLowerCase();
+    switch (alertType) {
       case 'mint':
         return 'bg-green-500/10 text-green-500 font-medium';
-      case 'normal':
-        return 'bg-blue-500/10 text-blue-500 font-medium';
       case 'volume':
-        return 'bg-purple-500/10 text-purple-500 font-medium';
+        return 'bg-blue-500/10 text-blue-500 font-medium';
       case 'price':
         return 'bg-amber-500/10 text-amber-500 font-medium';
       default:
@@ -155,7 +169,7 @@ const VelocityPage = () => {
               <SelectContent>
                 <SelectItem value="all">All Alert Types</SelectItem>
                 {getCategories().map(category => (
-                  <SelectItem key={category} value={category}>{category.charAt(0).toUpperCase() + category.slice(1)} Alerts</SelectItem>
+                  <SelectItem key={category} value={category.toLowerCase()}>{category} Alerts</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -195,8 +209,8 @@ const VelocityPage = () => {
                       <TableRow key={alert._id}>
                         <TableCell className="font-medium">{alert.ticker}</TableCell>
                         <TableCell>
-                          <Badge className={getCategoryBadgeColor(alert.category)}>
-                            {alert.category.toUpperCase()} ALERT
+                          <Badge className={getCategoryBadgeColor(alert.message_text)}>
+                            {getAlertTypeFromMessage(alert.message_text)}
                           </Badge>
                         </TableCell>
                         <TableCell>{alert.threshold}</TableCell>
@@ -213,6 +227,7 @@ const VelocityPage = () => {
                 </Table>
               </div>
               
+              {/* Pagination controls */}
               <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
                 <div className="text-sm text-muted-foreground">
                   Showing {filteredAlerts.length > 0 ? currentPage * itemsPerPage + 1 : 0} to {Math.min((currentPage + 1) * itemsPerPage, filteredAlerts.length)} of {filteredAlerts.length} alerts
